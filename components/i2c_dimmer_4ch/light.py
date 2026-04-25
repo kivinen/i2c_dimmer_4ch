@@ -31,14 +31,13 @@ CONFIG_SCHEMA = (
 
 )
 
-
 async def to_code(config):
-    var = cg.new_Pvariable(config[CONF_OUTPUT_ID])
-    await light.register_light(var, config)
-
-    brightness = await cg.get_variable(config[CONF_BRIGHTNESS])
-    cg.add(var.set_brightness(brightness))
-    cg.add(var.set_min_brightness(config[CONF_MIN_BRIGHTNESS]))
-    cg.add(var.set_max_brightness(config[CONF_MAX_BRIGHTNESS]))
-    cg.add(var.set_channel(config[CONF_CHANNEL]))
+#    var = cg.new_Pvariable(config[CONF_OUTPUT_ID])
+#    await light.register_light(var, config)
+#
+#    brightness = await cg.get_variable(config[CONF_BRIGHTNESS])
+#    cg.add(var.set_brightness(brightness))
+#    cg.add(var.set_min_brightness(config[CONF_MIN_BRIGHTNESS]))
+#    cg.add(var.set_max_brightness(config[CONF_MAX_BRIGHTNESS]))
+#    cg.add(var.set_channel(config[CONF_CHANNEL]))
 

@@ -48,3 +48,33 @@ transaction, where the first byte is channel and second is dimming
 level, but for the i2c protocol this is exactly same as writing
 dimming level as one byte to register associated with the channel.
 
+## Examples
+
+### Example.yaml
+
+This example contains code that will allow controlling dimmer by just
+using one button. This button will work as follows:
+
+| Action       | Status of Light  |  Description                          |
+| ------------ | ---------------- | ------------------------------------- |
+| Short press  | Light is off     | Turn light on restoring previous brightness  |
+| Short press  | Light is on      | Turn light off storing brightness     |
+| Long press   | Light is off     | Turn light on at minimal brightness, and continue adjusting brightness up   |
+| Long press   | Light is on      | Start adjusting brightness up or down reversing the direction we used last time. When it hits max or min brightness it will delay for a moment, and then change direction.  |
+| Double click | -                | Turn light on at full brightness.      |
+
+### Example_2buttons.yaml
+
+This example uses two buttons to control the dimmer. Buttons are
+configured as follows:
+
+| Button  | Action       | Status of Light  | Description                                  |
+| ------- | -----        | ---------------- | -------------------------------------------- |
+| Up      | Short press  | Light is off     | Turn light on restoring previous brightness. |
+| Up      | Short press  | Light is on      | Turn light to full brightness.               |
+| Up      | Long press   | -                | Start adjusting brightness up.               |
+| Down    | Short press  | Light is off     | Ignored.                                     |
+| Down    | Short press  | Light is on      | Turn off light, storing brightness.           |
+| Down    | Long press   | Light is on      | Start adjusting brightness down.             |
+
+# EOF

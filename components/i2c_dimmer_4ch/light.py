@@ -18,7 +18,7 @@ I2CDimmer4ChLightOutput = i2c_dimmer_4ch_ns.class_("I2CDimmer4ChLightOutput",
                                                    light.LightOutput)
 
 CONFIG_SCHEMA = (
-    cv.BRIGHTNESS_ONLY_LIGHT_SCHEMA.extend(
+    BRIGHTNESS_ONLY_LIGHT_SCHEMA.extend(
         {
             cv.Required(CONF_CHANNEL): cv.hex_int_range(0, 255),
         }))

@@ -13,7 +13,7 @@ connection.
 
 For the AC connection there is two screw terminals for the AC INPUT,
 and the device automatically detects whether the input is 50 Hz or 60
-Hz.
+Hz. Then there are four AC outputs for 4 channels.
 
 The A2, A1, A0 switches can be used to select the i2c address, by
 default all of them are low meaning address 0x3F is used. Turning

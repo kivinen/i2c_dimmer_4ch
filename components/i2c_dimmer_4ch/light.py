@@ -20,16 +20,20 @@ I2CDimmer4ChLightOutput = i2c_dimmer_4ch_ns.class_("I2CDimmer4ChLightOutput",
 CONFIG_SCHEMA = (
     light.BRIGHTNESS_ONLY_LIGHT_SCHEMA.extend(
         {
-            cv.GenerateID(CONF_OUTPUT_ID): cv.declare_id(I2CDimmer4ChLightOutput),
             cv.Required(CONF_CHANNEL): cv.hex_int_range(0, 255),
-            cv.Optional(CONF_MIN_BRIGHTNESS, default=0): cv.uint8_t,
-            cv.Optional(CONF_MAX_BRIGHTNESS, default=100): cv.uint8_t,
-        }
-    )
+        }))
+
+#light.BRIGHTNESS_ONLY_LIGHT_SCHEMA.extend(
+#        {
+#            cv.GenerateID(CONF_OUTPUT_ID): cv.declare_id(I2CDimmer4ChLightOutput),
+#            cv.Required(CONF_CHANNEL): cv.hex_int_range(0, 255),
+#            cv.Optional(CONF_MIN_BRIGHTNESS, default=0): cv.uint8_t,
+#            cv.Optional(CONF_MAX_BRIGHTNESS, default=100): cv.uint8_t,
+#        }
+#    )
 #    .extend(cv.COMPONENT_SCHEMA)
 #    .extend(i2c.i2c_device_schema(0x3f))
-
-)
+#)
 
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_OUTPUT_ID])

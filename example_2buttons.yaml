@@ -1,0 +1,162 @@
+esphome:
+  name: c6
+  friendly_name: c6
+
+esp32:
+  board: esp32-c6-devkitc-1
+  framework:
+    type: esp-idf
+
+external_components:
+  source: github://kivinen/i2c_dimmer_4ch
+
+# Enable logging
+logger:
+#  level: VERBOSE
+
+i2c:
+  sda: GPIO6
+  scl: GPIO7
+  scan: True
+  id: bus_main
+
+# 4 Channel Dimmer has four channels numbered from 128 to 131
+#
+# The min and max values limit the actual values sent to the dimmer
+# value 100 = off, value = 0 is fully on, limiting max value will
+# allow keeping led lights on, as when the light is dimmed too much
+# there is not enough power to keep led light drivers running and they
+# will shut down completely (or start blinking or some of them turn
+# off and some stay dim etc). This is not needed if using incandescent
+# light bulbs.
+#
+# Even if the max value is set to some value, when light is turned
+# off, then value 100 is sent to the dimmer.
+
+light:
+  - platform: i2c_dimmer_4ch
+    id: dimmer1
+    name: "test"
+    channel: 131
+    i2c_id: bus_main
+    address: 0x3f
+    # gamma_correct: 1.0
+    max_value: 90
+    min_value: 0
+    default_transition_length: 500ms
+    effects:
+      - pulse:
+          transition_length: 500ms
+          update_interval: 500ms
+          max_brightness: 1.0
+          min_brightness: 0.3
+
+# Output section is mandatory even if it is empty to get
+# output/float_output.h
+output:
+
+# Here is example of two button light control.
+#
+# Click on 'off' button will turn light off.
+# Long press on the 'off' button will start dimming the light.
+#
+# Click on the 'on' button will turn light on (to previous level)
+# Long press on the 'on' button will start brighten the light.
+
+#
+# dim_last_brightness contains the brightness before light was turned
+# off, and is used to restore the brightness
+#
+globals:
+  - id: dim_last_brightness
+    type: float
+    restore_value: no
+    initial_value: '1.0'
+
+# 
+# This uses two buttons to adjust brightness.
+#
+# The first button act as turn on / brighten button, i.e., on short
+# press it will turn light on (to the last brightness), and on long
+# press it will start adjusting brightness up. Note, that when you
+# turn light on, it will set the last brightness to max so if you
+# press it again while lights are on, you get full brightness.
+#
+# The second button act as off / dim lights button, i.e., on short
+# press it will turn light off (and store last brightness), and on
+# long press it will start adjusting brightness down. 
+binary_sensor:
+  - platform: gpio
+    id: b1_brightness_up
+    pin:
+      number: GPIO10
+      mode:
+        input: true
+        pullup: true
+    filters:
+      - invert:   
+      - delayed_on_off: 10ms
+      - settle: 10ms
+    on_multi_click:
+    - timing:
+        - ON for at most 350ms
+        - OFF for at least 100ms
+      then:
+        - logger.log: "Light On"
+        - light.turn_on:
+            id: dimmer1
+            brightness: !lambda return id(dim_last_brightness);
+        - lambda: |-
+            id(dim_last_brightness)=1.0;
+    - timing:
+        - ON for at least 500ms
+      then:
+        - logger.log: "Brightness up"
+        - while:
+            condition:
+              binary_sensor.is_on: b1_brightness_up
+            then:
+              - light.dim_relative:
+                  id: dimmer1
+                  relative_brightness: 5%
+                  transition_length: 100ms
+                  brightness_limits:
+                    max_brightness: 100%
+                    min_brightness: 10%
+              - delay: 100ms
+  - platform: gpio
+    id: b1_brightness_down
+    pin:
+      number: GPIO9
+      mode:
+        input: true
+        pullup: true
+    filters:
+      - invert:   
+      - delayed_on_off: 10ms
+      - settle: 10ms
+    on_multi_click:
+    - timing:
+        - ON for at most 350ms
+        - OFF for at least 100ms
+      then:
+        - logger.log: "Light Off"
+        - lambda: |-
+            id(dim_last_brightness)=id(dimmer1).remote_values.get_brightness();
+        - light.turn_off: dimmer1
+    - timing:
+        - ON for at least 500ms
+      then:
+        - logger.log: "Brightness down"
+        - while:
+            condition:
+              binary_sensor.is_on: b1_brightness_down
+            then:
+              - light.dim_relative:
+                  id: dimmer1
+                  relative_brightness: -5%
+                  transition_length: 100ms
+                  brightness_limits:
+                    max_brightness: 100%
+                    min_brightness: 10%
+              - delay: 100ms

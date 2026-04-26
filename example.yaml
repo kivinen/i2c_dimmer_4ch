@@ -12,6 +12,7 @@ external_components:
 
 # Enable logging
 logger:
+#  level: VERBOSE
 
 i2c:
   sda: GPIO6
@@ -22,15 +23,15 @@ i2c:
 # 4 Channel Dimmer has four channels numbered from 128 to 131
 #
 # The min and max values limit the actual values sent to the dimmer
-# value 100 = off, value = 0 is fully on, limiting max value 
-# will allow keeping led lights on, as when the light is dimmed
-# too much there is not enough power to keep led light drivers
-# running and they will shut down completely (or start blinking
-# or some of them turn off and some stay dim etc). This is not
-# needed if using incandescent light bulbs.
+# value 100 = off, value = 0 is fully on, limiting max value will
+# allow keeping led lights on, as when the light is dimmed too much
+# there is not enough power to keep led light drivers running and they
+# will shut down completely (or start blinking or some of them turn
+# off and some stay dim etc). This is not needed if using incandescent
+# light bulbs.
 #
-# Even if the max value is set to some value, when light
-# is turned off, then value 100 is sent to the dimmer.
+# Even if the max value is set to some value, when light is turned
+# off, then value 100 is sent to the dimmer.
 
 light:
   - platform: i2c_dimmer_4ch
@@ -43,6 +44,12 @@ light:
     max_value: 90
     min_value: 0
     default_transition_length: 500ms
+    effects:
+      - pulse:
+          transition_length: 500ms
+          update_interval: 500ms
+          max_brightness: 1.0
+          min_brightness: 0.3
 
 # Output section is mandatory even if it is empty to get
 # output/float_output.h
@@ -50,13 +57,12 @@ output:
 
 # Here is example of one button light control
 #
-# Short click on the button will toggle light on and off
-# remembering previous brightness
+# Short click on the button will toggle light on and off remembering
+# previous brightness
 #
-# Long click will start adjusting brightness
-# brightness will increase until it is at max, and then it will
-# start decreasing until it in min, and then it starts
-# increasing again.
+# Long click will start adjusting brightness brightness will increase
+# until it is at max, and then it will start decreasing until it in
+# min, and then it starts increasing again.
 
 #
 # dim_dir_up specifies the direction of the brightness adjustment
@@ -76,28 +82,29 @@ globals:
 # 
 # This uses only one button to adjust the brightness
 #
-# It uses on_click action turn light on and off.
-# If the click is longer than 30ms but less than 350ms
-# then it checks wheter light is on, and if so it  stores the
-# dim_last_brightness and turns light off. It the light is off,
-# it will turn it on with specified brightness
+# It uses on_multi_click to do everything. The first it will detect
+# double click, i.e., and if so turn the light to full brightness.
 #
-# The brightness adjustment is done using on_press, which
-# first delays for 0.5 seconds, and then checks whether
-# button is still pressed. If so it will loop as long as the
-# button is pressed. When the button is released the direction
-# is also changed.
+# The next timing detects short click, which will toggle the light on
+# or off. When it turns light off it will store the previous
+# brightness level to dim_last_brightness global, and when it turns it
+# back on it restores that level. 
+#
+# The final timing detects long press (more than 0.5 seconds), and
+# that will start adjusting brightness of the light. The light level
+# will go to one direction until it hits the max or min level and then
+# it lingers there for a moment, before starting to go to the another
+# direction. Every time you start long press the direction changes,
+# which makes it easy to adjust exact level, i.e., if you overshoot
+# the level you simply release the button and do a long press again to
+# go back. 
 #
 # Inside the loop it uses if statement to check the value of
 # dim_dir_up and adjust the light level relatively based on that.
-# Note, that the relative_brightness can't use
-# !lambda id(dimmer1).remote_values,get_brightness();
-# as if there is lambda in the light.dim_relative then the next
-# delay between light.dim_relative does not work.
-# After adjusting brightness it will delay for 100ms, and then chec
-# whether we are in max or min brightness and if so, then it will
-# delay for a extra 200ms, and then change direction. This makes
-# it easier to use max or min brightness.
+# Note, that the relative_brightness can't use !lambda
+# id(dimmer1).remote_values,get_brightness(); as if there is lambda in
+# the light.dim_relative then the next delay between
+# light.dim_relative does not work. 
 #
 binary_sensor:
   - platform: gpio
@@ -109,8 +116,8 @@ binary_sensor:
         pullup: true
     filters:
       - invert:   
-      - delayed_on_off: 30ms
-      - settle: 30ms
+      - delayed_on_off: 10ms
+      - settle: 10ms
     on_multi_click:
     - timing:
         - ON for at most 350ms
@@ -183,3 +190,17 @@ binary_sensor:
                     - lambda: id(dim_dir_up) = true;
                     - logger.log: "Direction up"
         - lambda: id(dim_dir_up) = (id(dim_dir_up) == false);
+    - timing:
+        - ON for 350ms to 1000ms
+        - OFF for at most 500ms
+        - ON for at least 50ms
+        - OFF for at most 500ms
+        - ON for at least 50ms
+        - OFF for at most 500ms
+        - ON for at least 50ms
+        - OFF for at least 100ms
+      then:
+        - logger.log: "Morse B detected enable blink"
+        - light.turn_on:
+            id: dimmer1
+            effect: pulse

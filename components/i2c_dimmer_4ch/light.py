@@ -26,8 +26,8 @@ CONFIG_SCHEMA = (
             cv.Optional(CONF_MAX_BRIGHTNESS, default=100): cv.uint8_t,
         }
     )
-    .extend(cv.COMPONENT_SCHEMA)
-    .extend(i2c.i2c_device_schema(0x3f))
+#    .extend(cv.COMPONENT_SCHEMA)
+#    .extend(i2c.i2c_device_schema(0x3f))
 
 )
 

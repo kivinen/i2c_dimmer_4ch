@@ -3,7 +3,7 @@ from esphome.components import light, output
 from esphome.components import i2c
 from esphome.components.i2c import I2CBus
 import esphome.config_validation as cv
-import BRIGHTNESS_ONLY_LIGHT_SCHEMA from light
+from esphome.components.light import  BRIGHTNESS_ONLY_LIGHT_SCHEMA
 from esphome.const import (
     CONF_OUTPUT_ID,
     CONF_CHANNEL,

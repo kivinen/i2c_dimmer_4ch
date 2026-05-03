@@ -47,7 +47,7 @@ namespace esphome {
                                   max_value_, min_value_);
         }
         if (brightness_int == brightness_) {
-          ESP_LOGV(TAG, "Not sending unchanged value");
+          // ESP_LOGV(TAG, "Not sending unchanged value");
           return;
         }
         ESP_LOGV(TAG, "Brightness to ch %d update: %d (raw: %f)", channel_,
